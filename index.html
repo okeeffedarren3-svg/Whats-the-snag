@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#173b35">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="SnagList">
+<link rel="manifest" href="manifest.webmanifest">
+<title>SnagList</title>
+<style>
+:root{--ink:#173b35;--green:#27675b;--paper:#f5f7f5;--line:#dce4df;--muted:#66736d;--white:#fff;--red:#a63737}
+*{box-sizing:border-box}body{margin:0;background:var(--paper);color:#17251f;font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding-bottom:env(safe-area-inset-bottom)}
+header{background:var(--ink);color:white;padding:20px 18px 18px;position:sticky;top:0;z-index:3;box-shadow:0 2px 10px #0001}
+.top{max-width:850px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:12px}h1{font-size:24px;margin:0}header p{margin:5px 0 0;color:#d5e6df;font-size:13px}
+main{max-width:850px;margin:0 auto;padding:16px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}.stat{background:white;border:1px solid var(--line);border-radius:13px;padding:12px}.stat b{display:block;font-size:23px;color:var(--ink)}.stat span{font-size:12px;color:var(--muted)}
+.panel{background:white;border:1px solid var(--line);border-radius:16px;padding:16px;margin-bottom:15px}
+h2{font-size:18px;margin:0 0 13px}.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.full{grid-column:1/-1}
+label{font-size:13px;font-weight:650;display:block;margin-bottom:6px;color:#31463d}
+input,select,textarea,button{font:inherit}input,select,textarea{width:100%;border:1px solid #cbd6cf;border-radius:10px;padding:11px;background:white;color:#17251f}textarea{min-height:84px;resize:vertical}
+button{border:0;border-radius:10px;padding:11px 14px;font-weight:700;cursor:pointer}.primary{background:var(--green);color:white}.secondary{background:#e8efeb;color:var(--ink)}.danger{background:#fae9e9;color:var(--red)}.small{font-size:13px;padding:8px 10px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px}.notice{font-size:12px;color:var(--muted);line-height:1.5;margin:10px 0 0}
+.filters{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}.filters .full{grid-column:1/-1}
+.list{display:grid;gap:10px}.card{background:white;border:1px solid var(--line);border-radius:14px;padding:13px;display:grid;grid-template-columns:96px 1fr;gap:12px}.thumb{width:96px;height:96px;object-fit:cover;border-radius:10px;background:#edf1ee}.placeholder{display:flex;align-items:center;justify-content:center;color:#7a8981;font-size:12px;text-align:center;padding:5px}
+.card h3{margin:0 0 5px;font-size:16px}.meta{font-size:12px;color:var(--muted);display:flex;gap:6px;flex-wrap:wrap;margin-bottom:7px}.desc{font-size:14px;white-space:pre-wrap;overflow-wrap:anywhere}.pill{border-radius:30px;padding:3px 8px;background:#edf3ef;color:#315c4e}.pill.high{background:#fae9e9;color:#a63737}.pill.medium{background:#fff2d6;color:#8b5a08}.empty{text-align:center;padding:30px 15px;color:var(--muted)}.empty strong{display:block;color:var(--ink);margin-bottom:6px}
+#photoPreview{display:none;max-width:100%;max-height:180px;border-radius:10px;margin-top:8px}
+footer{max-width:850px;margin:0 auto;padding:0 16px 24px;color:var(--muted);font-size:12px}
+@media(max-width:520px){main{padding:12px}.formgrid{grid-template-columns:1fr}.full{grid-column:auto}.card{grid-template-columns:78px 1fr;gap:10px;padding:10px}.thumb{width:78px;height:78px}.stats{gap:6px}.stat{padding:10px 8px}.stat b{font-size:21px}.stat span{font-size:11px}}
+</style>
+</head>
+<body>
+<header><div class="top"><div><h1>SnagList</h1><p>Your house defects, organised and photographed.</p></div><button class="secondary small" id="installBtn" hidden>Install app</button></div></header>
+<main>
+<div class="stats"><div class="stat"><b id="totalCount">0</b><span>Total snags</span></div><div class="stat"><b id="openCount">0</b><span>Open</span></div><div class="stat"><b id="doneCount">0</b><span>Completed</span></div></div>
+<section class="panel" id="editorPanel">
+<h2 id="formTitle">Add a snag</h2>
+<form id="snagForm">
+<input type="hidden" id="snagId">
+<div class="formgrid">
+<div class="full"><label for="title">Snag title *</label><input id="title" required maxlength="120" placeholder="e.g. Cracked tile beside shower"></div>
+<div><label for="room">Room / location</label><input id="room" maxlength="100" placeholder="e.g. Ensuite"></div>
+<div><label for="priority">Priority</label><select id="priority"><option value="Medium">Medium</option><option value="High">High</option><option value="Low">Low</option></select></div>
+<div><label for="status">Status</label><select id="status"><option>Open</option><option>In progress</option><option>Completed</option></select></div>
+<div><label for="dueDate">Target date</label><input type="date" id="dueDate"></div>
+<div class="full"><label for="description">Description</label><textarea id="description" maxlength="3000" placeholder="Describe the defect and what needs to be done…"></textarea></div>
+<div class="full"><label for="photo">Photo (optional)</label><input type="file" id="photo" accept="image/*" capture="environment"><img id="photoPreview" alt="Selected photo preview"><div class="actions"><button type="button" class="secondary small" id="removePhoto" hidden>Remove photo</button></div></div>
+</div>
+<div class="actions"><button class="primary" type="submit" id="saveBtn">Save snag</button><button class="secondary" type="button" id="cancelEdit" hidden>Cancel edit</button></div>
+<p class="notice" id="saveMessage" role="status">Saved on this device in the app's local database. Export a backup regularly.</p>
+</form>
+</section>
+<section class="panel">
+<h2>Your snag list</h2>
+<div class="filters">
+<div class="full"><label for="search">Search</label><input id="search" placeholder="Search title, room or description"></div>
+<div><label for="filterStatus">Status</label><select id="filterStatus"><option value="All">All statuses</option><option>Open</option><option>In progress</option><option>Completed</option></select></div>
+<div><label for="filterPriority">Priority</label><select id="filterPriority"><option value="All">All priorities</option><option>High</option><option>Medium</option><option>Low</option></select></div>
+</div>
+<div class="actions" style="margin:0 0 12px"><button class="secondary small" id="exportBtn">Export backup</button><button class="secondary small" id="importBtn">Import backup</button><button class="secondary small" id="printBtn">Print / PDF</button><input type="file" id="importFile" accept="application/json,.json" hidden></div>
+<div id="snagList" class="list"><div class="empty"><strong>No snags yet</strong>Add your first snag using the form above.</div></div>
+</section>
+</main>
+<footer>Privacy: your snags and photos stay in this browser on this device. They do not automatically sync to other devices. Keep a backup using Export backup.</footer>
+<script>
+(()=> {
+'use strict';
+const DB_NAME='SnagListDB', DB_VERSION=1, STORE='snags';
+let db, photoData=null, deferredPrompt=null;
+const $=id=>document.getElementById(id);
+const form=$('snagForm');
+function message(text, error=false){$('saveMessage').textContent=text;$('saveMessage').style.color=error?'#a63737':'#27675b'}
+function openDB(){return new Promise((resolve,reject)=>{
+ if(!('indexedDB' in window)){reject(new Error('This browser does not support local database storage.'));return}
+ const req=indexedDB.open(DB_NAME,DB_VERSION);
+ req.onupgradeneeded=()=>{const d=req.result;if(!d.objectStoreNames.contains(STORE)){const s=d.createObjectStore(STORE,{keyPath:'id'});s.createIndex('updatedAt','updatedAt')}}
+ req.onsuccess=()=>resolve(req.result);req.onerror=()=>reject(req.error||new Error('Could not open local database.'));
+})}
+function txStore(mode='readonly'){return db.transaction(STORE,mode).objectStore(STORE)}
+function allSnags(){return new Promise((resolve,reject)=>{const r=txStore().getAll();r.onsuccess=()=>resolve(r.result.sort((a,b)=>b.updatedAt-a.updatedAt));r.onerror=()=>reject(r.error)})}
+function putSnag(s){return new Promise((resolve,reject)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).put(s);t.oncomplete=()=>resolve();t.onerror=()=>reject(t.error||new Error('Save failed'));t.onabort=()=>reject(t.error||new Error('Save was cancelled'))})}
+function deleteSnag(id){return new Promise((resolve,reject)=>{const t=db.transaction(STORE,'readwrite');t.objectStore(STORE).delete(id);t.oncomplete=resolve;t.onerror=()=>reject(t.error)})}
+function esc(s=''){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function formatDate(v){if(!v)return '';const d=new Date(v+'T00:00:00');return isNaN(d)?v:d.toLocaleDateString()}
+function filtered(items){const q=$('search').value.trim().toLowerCase(),st=$('filterStatus').value,pr=$('filterPriority').value;return items.filter(s=>(st==='All'||s.status===st)&&(pr==='All'||s.priority===pr)&&(!q||[s.title,s.room,s.description].join(' ').toLowerCase().includes(q)))}
+async function render(){try{const items=await allSnags();$('totalCount').textContent=items.length;$('openCount').textContent=items.filter(s=>s.status!=='Completed').length;$('doneCount').textContent=items.filter(s=>s.status==='Completed').length;const shown=filtered(items);const list=$('snagList');if(!shown.length){list.innerHTML='<div class="empty"><strong>'+ (items.length?'No matching snags':'No snags yet')+'</strong>'+(items.length?'Try changing your search or filters.':'Add your first snag using the form above.')+'</div>';return}
+list.innerHTML=shown.map(s=>`<article class="card"><div>${s.photo?`<img class="thumb" src="${s.photo}" alt="Photo for ${esc(s.title)}">`:`<div class="thumb placeholder">No photo</div>`}</div><div><h3>${esc(s.title)}</h3><div class="meta">${s.room?`<span>${esc(s.room)}</span>`:''}<span class="pill ${s.priority.toLowerCase()}">${esc(s.priority)} priority</span><span class="pill">${esc(s.status)}</span>${s.dueDate?`<span>Due ${esc(formatDate(s.dueDate))}</span>`:''}</div>${s.description?`<div class="desc">${esc(s.description)}</div>`:''}<div class="actions"><button class="secondary small" data-edit="${s.id}">Edit</button><button class="secondary small" data-toggle="${s.id}">${s.status==='Completed'?'Reopen':'Mark complete'}</button><button class="danger small" data-delete="${s.id}">Delete</button></div></div></article>`).join('');
+}catch(e){message('Could not load saved snags: '+e.message,true)}}
+function resetForm(){form.reset();$('snagId').value='';photoData=null;$('photoPreview').src='';$('photoPreview').style.display='none';$('removePhoto').hidden=true;$('cancelEdit').hidden=true;$('formTitle').textContent='Add a snag';$('saveBtn').textContent='Save snag'}
+$('photo').addEventListener('change',async e=>{const file=e.target.files&&e.target.files[0];if(!file)return;try{if(file.size>15*1024*1024){message('That photo is over 15 MB. Please choose a smaller photo.',true);e.target.value='';return}photoData=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(new Error('Could not read photo'));reader.readAsDataURL(file)});$('photoPreview').src=photoData;$('photoPreview').style.display='block';$('removePhoto').hidden=false;message('Photo attached. Save the snag to keep it.')}catch(err){message(err.message,true)}});
+$('removePhoto').onclick=()=>{photoData=null;$('photo').value='';$('photoPreview').src='';$('photoPreview').style.display='none';$('removePhoto').hidden=true};
+$('cancelEdit').onclick=resetForm;
+form.addEventListener('submit',async e=>{e.preventDefault();if(!db){message('Database is not ready. Reopen the app in Safari from its hosted address.',true);return}
+const id=$('snagId').value||((crypto.randomUUID&&crypto.randomUUID())||('snag-'+Date.now()+'-'+Math.random().toString(16).slice(2)));
+try{const old=$('snagId').value?await new Promise((resolve,reject)=>{const r=txStore().get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)}):null;
+const snag={id,title:$('title').value.trim(),room:$('room').value.trim(),priority:$('priority').value,status:$('status').value,dueDate:$('dueDate').value,description:$('description').value.trim(),photo:photoData!==null?photoData:(old?.photo||null),createdAt:old?.createdAt||Date.now(),updatedAt:Date.now()};
+if(!snag.title){message('Please enter a snag title.',true);return}
+await putSnag(snag);resetForm();message('Snag saved successfully on this device.');await render();window.scrollTo({top:0,behavior:'smooth'});
+}catch(err){message('SAVE FAILED: '+(err.message||'Could not save this snag. Export a backup if possible.'),true)}});
+$('snagList').addEventListener('click',async e=>{const b=e.target.closest('button');if(!b)return;const id=b.dataset.edit||b.dataset.toggle||b.dataset.delete;if(!id)return;try{const s=await new Promise((resolve,reject)=>{const r=txStore().get(id);r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)});if(!s)return;
+if(b.dataset.edit){$('snagId').value=s.id;$('title').value=s.title;$('room').value=s.room||'';$('priority').value=s.priority;$('status').value=s.status;$('dueDate').value=s.dueDate||'';$('description').value=s.description||'';photoData=s.photo||null;if(photoData){$('photoPreview').src=photoData;$('photoPreview').style.display='block';$('removePhoto').hidden=false}else{$('photoPreview').style.display='none';$('removePhoto').hidden=true}$('formTitle').textContent='Edit snag';$('saveBtn').textContent='Save changes';$('cancelEdit').hidden=false;$('editorPanel').scrollIntoView({behavior:'smooth'});return}
+if(b.dataset.toggle){s.status=s.status==='Completed'?'Open':'Completed';s.updatedAt=Date.now();await putSnag(s);message('Snag status updated.');await render();return}
+if(b.dataset.delete&&confirm('Delete this snag permanently?')){await deleteSnag(id);message('Snag deleted.');await render()}
+}catch(err){message('Could not update snag: '+err.message,true)}});
+['search','filterStatus','filterPriority'].forEach(id=>$(id).addEventListener(id==='search'?'input':'change',render));
+$('exportBtn').onclick=async()=>{try{const data={app:'SnagList',version:1,exportedAt:new Date().toISOString(),snags:await allSnags()};const blob=new Blob([JSON.stringify(data)],{type:'application/json'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='snaglist-backup-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);message('Backup export started. Keep the downloaded file somewhere safe.')}catch(e){message('Export failed: '+e.message,true)}};
+$('importBtn').onclick=()=>$('importFile').click();
+$('importFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{const data=JSON.parse(await f.text());if(!data||!Array.isArray(data.snags))throw new Error('This does not look like a SnagList backup.');if(!confirm(`Import ${data.snags.length} snags? Items with matching IDs will be replaced.`))return;for(const s of data.snags){if(s.id&&s.title)await putSnag({...s,updatedAt:Date.now()})}message('Backup imported successfully.');await render()}catch(err){message('Import failed: '+err.message,true)}finally{e.target.value=''}};
+$('printBtn').onclick=()=>window.print();
+if ('serviceWorker' in navigator && (location.protocol==='https:' || location.hostname==='localhost')) {
+ navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('installBtn').hidden=false});
+$('installBtn').onclick=async()=>{if(!deferredPrompt)return;deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('installBtn').hidden=true};
+(async()=>{try{db=await openDB();message('Local database ready. Snags are saved on this device.');await render()}catch(e){message('Storage could not start: '+e.message+'. Use the hosted app in Safari, not the ChatGPT preview or Files preview.',true);$('saveBtn').disabled=true}})();
+})();
+</script>
+</body></html>
